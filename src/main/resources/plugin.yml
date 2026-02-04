@@ -1,0 +1,95 @@
+name: TimeAttackPlugin
+version: '${version}'
+main: me.f0reach.timeattack.PluginMain
+api-version: '1.21'
+authors: [ f0reachARR ]
+description: Multiverse Coreを使用したチーム対抗タイムアタックプラグイン
+
+depend:
+  - Multiverse-Core
+
+softdepend:
+  - Multiverse-NetherPortals
+
+commands:
+  timeattack:
+    description: タイムアタックのメインコマンド
+    aliases: [ta]
+    usage: /<command> <subcommand> [args]
+
+permissions:
+  timeattack.admin:
+    description: 管理者権限（全機能へのアクセス）
+    default: op
+    children:
+      timeattack.setup: true
+      timeattack.create: true
+      timeattack.delete: true
+      timeattack.start: true
+      timeattack.complete: true
+      timeattack.reset: true
+      timeattack.reload: true
+      timeattack.team: true
+      timeattack.status: true
+
+  timeattack.setup:
+    description: シード設定
+    default: op
+
+  timeattack.create:
+    description: ワールド作成
+    default: op
+
+  timeattack.delete:
+    description: チーム・ワールド削除
+    default: op
+
+  timeattack.start:
+    description: ゲーム開始
+    default: op
+
+  timeattack.complete:
+    description: ゲーム完了記録
+    default: op
+
+  timeattack.reset:
+    description: ゲームリセット
+    default: op
+
+  timeattack.reload:
+    description: 設定リロード
+    default: op
+
+  timeattack.team:
+    description: チーム管理（参加者用）
+    default: true
+    children:
+      timeattack.team.create: true
+      timeattack.team.join: true
+      timeattack.team.leave: true
+      timeattack.team.auto: true
+      timeattack.team.list: true
+
+  timeattack.team.create:
+    description: チーム作成
+    default: true
+
+  timeattack.team.join:
+    description: チーム参加
+    default: true
+
+  timeattack.team.leave:
+    description: チーム離脱
+    default: true
+
+  timeattack.team.auto:
+    description: 自動振り分け
+    default: true
+
+  timeattack.team.list:
+    description: チーム一覧表示
+    default: true
+
+  timeattack.status:
+    description: ゲーム状態確認
+    default: true

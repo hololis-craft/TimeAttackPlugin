@@ -1,0 +1,40 @@
+# TimeAttackPlugin 設定ファイル
+
+# 一般設定
+general:
+  # デバッグモード
+  debug: false
+  # メッセージのプレフィックス
+  message-prefix: "&6[TimeAttack]&r "
+
+# ワールド設定
+worlds:
+  # ストラクチャー（村、要塞など）を生成するか
+  generate-structures: true
+
+# チーム設定
+teams:
+  # チームの最大人数（0 = 無制限）
+  max-members: 4
+  # 自動振り分け設定
+  auto-assign:
+    # 自動振り分けを有効にするか
+    enabled: true
+    # 待機中のみ自動振り分けを行うか
+    only-when-waiting: true
+
+# ゲーム設定
+game:
+  # 開始前のカウントダウン秒数（0 = カウントダウンなし）
+  start-countdown: 10
+  # 開始時にタイトルを表示するか
+  show-title-on-start: true
+
+# 時間計測設定
+time:
+  # アクションバー更新間隔（tick単位、20tick = 1秒）
+  update-interval: 20
+  # アクションバーに時間を表示するか
+  show-actionbar: true
+  # 時間フォーマット
+  format: "HH:mm:ss.SSS"
