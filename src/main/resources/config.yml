@@ -5,7 +5,7 @@ general:
   # デバッグモード
   debug: false
   # メッセージのプレフィックス
-  message-prefix: "&6[TimeAttack]&r "
+  message-prefix: "[TimeAttack] "
 
 # ワールド設定
 worlds:

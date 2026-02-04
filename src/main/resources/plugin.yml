@@ -60,27 +60,28 @@ permissions:
     description: 設定リロード
     default: op
 
+  timeattack.autojoin.bypass:
+    description: 自動参加をバイパス
+    default: op
+
   timeattack.team:
     description: チーム管理（参加者用）
     default: true
     children:
-      timeattack.team.create: true
-      timeattack.team.join: true
-      timeattack.team.leave: true
       timeattack.team.auto: true
       timeattack.team.list: true
 
   timeattack.team.create:
     description: チーム作成
-    default: true
+    default: op
 
   timeattack.team.join:
     description: チーム参加
-    default: true
+    default: op
 
   timeattack.team.leave:
     description: チーム離脱
-    default: true
+    default: op
 
   timeattack.team.auto:
     description: 自動振り分け

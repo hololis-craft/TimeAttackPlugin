@@ -36,7 +36,7 @@ public class PlayerJoinListener implements Listener {
                 currentTeam.hasWorldSet()) {
                 // 少し遅延してテレポート（ログイン処理完了後）
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                    if (player.isOnline()) {
+                    if (player.isOnline() && !currentTeam.getWorldSet().containsWorld(player.getWorld())) {
                         plugin.getGameManager().teleportTeamToSpawn(currentTeam);
                         MessageUtil.sendInfo(player, "ゲーム進行中のためチームワールドにテレポートしました");
                     }
@@ -47,6 +47,11 @@ public class PlayerJoinListener implements Listener {
 
         // 自動振り分けが有効か確認
         if (!plugin.getConfigManager().isAutoAssignEnabled()) {
+            return;
+        }
+
+        // 自動振り分けバイパス権限を持っているか確認
+        if (player.hasPermission("timeattack.autojoin.bypass")) {
             return;
         }
 

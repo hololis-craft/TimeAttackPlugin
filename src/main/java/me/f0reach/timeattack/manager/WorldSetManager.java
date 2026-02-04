@@ -3,6 +3,7 @@ package me.f0reach.timeattack.manager;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.WorldSet;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.mvplugins.multiverse.core.MultiverseCoreApi;
 import org.mvplugins.multiverse.core.world.LoadedMultiverseWorld;
 import org.mvplugins.multiverse.core.world.WorldManager;
@@ -28,6 +29,7 @@ public class WorldSetManager {
 
     /**
      * Multiverse Coreとの連携を初期化
+     *
      * @return 初期化成功の場合true
      */
     public boolean initialize() {
@@ -47,8 +49,9 @@ public class WorldSetManager {
 
     /**
      * チーム用のワールドセットを作成
+     *
      * @param teamName チーム名（ワールド名のプレフィックスになる）
-     * @param seed ワールドのシード値
+     * @param seed     ワールドのシード値
      * @return 作成されたWorldSet、失敗時はnull
      */
     public WorldSet createWorldSet(String teamName, long seed) {
@@ -65,10 +68,10 @@ public class WorldSetManager {
             // オーバーワールド作成
             plugin.getLogger().info("Creating overworld: " + worldSet.getOverworldName());
             var overworldResult = worldManager.createWorld(
-                CreateWorldOptions.worldName(worldSet.getOverworldName())
-                    .environment(World.Environment.NORMAL)
-                    .seed(seed)
-                    .generateStructures(generateStructures)
+                    CreateWorldOptions.worldName(worldSet.getOverworldName())
+                            .environment(World.Environment.NORMAL)
+                            .seed(seed)
+                            .generateStructures(generateStructures)
             );
 
             if (overworldResult.isFailure()) {
@@ -79,10 +82,10 @@ public class WorldSetManager {
             // ネザー作成
             plugin.getLogger().info("Creating nether: " + worldSet.getNetherName());
             var netherResult = worldManager.createWorld(
-                CreateWorldOptions.worldName(worldSet.getNetherName())
-                    .environment(World.Environment.NETHER)
-                    .seed(seed)
-                    .generateStructures(generateStructures)
+                    CreateWorldOptions.worldName(worldSet.getNetherName())
+                            .environment(World.Environment.NETHER)
+                            .seed(seed)
+                            .generateStructures(generateStructures)
             );
 
             if (netherResult.isFailure()) {
@@ -95,10 +98,10 @@ public class WorldSetManager {
             // エンド作成
             plugin.getLogger().info("Creating end: " + worldSet.getEndName());
             var endResult = worldManager.createWorld(
-                CreateWorldOptions.worldName(worldSet.getEndName())
-                    .environment(World.Environment.THE_END)
-                    .seed(seed)
-                    .generateStructures(generateStructures)
+                    CreateWorldOptions.worldName(worldSet.getEndName())
+                            .environment(World.Environment.THE_END)
+                            .seed(seed)
+                            .generateStructures(generateStructures)
             );
 
             if (endResult.isFailure()) {
@@ -119,6 +122,24 @@ public class WorldSetManager {
             plugin.getLogger().log(Level.SEVERE, "Exception while creating world set for " + teamName, e);
             return null;
         }
+    }
+
+    /**
+     * ワールドセットのスポーン位置に安全にテレポート
+     */
+    public void teleportToWorldSetSpawn(WorldSet worldSet, World.Environment environment, Player player) {
+        var targetWorld = worldSet.getWorld(environment);
+
+        if (targetWorld == null) {
+            plugin.getLogger().warning("Target world is null for environment: " + environment);
+            return;
+        }
+
+        // 安全なスポーン位置を取得
+        var spawnLocation = targetWorld.getSpawnLocation().clone();
+        mvApi.getSafetyTeleporter().to(spawnLocation)
+                .checkSafety(true)
+                .teleport(player);
     }
 
     /**

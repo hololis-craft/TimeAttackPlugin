@@ -24,39 +24,49 @@ public final class MessageUtil {
     }
 
     /**
+     * プレフィックス付きのメッセージを送信
+     */
+    public static void sendMessage(Player player, Component message) {
+        player.sendMessage(Component.text(prefix)
+                .color(NamedTextColor.GOLD)
+                .append(message));
+    }
+
+    /**
+     * 全プレイヤーにブロードキャスト
+     */
+    public static void broadcast(Component message) {
+        Bukkit.broadcast(Component.text(prefix)
+                .color(NamedTextColor.GOLD)
+                .append(message));
+    }
+
+    /**
      * プレフィックス付きの情報メッセージを送信
      */
     public static void sendInfo(Player player, String message) {
-        player.sendMessage(Component.text(prefix)
-            .color(NamedTextColor.GOLD)
-            .append(Component.text(message).color(NamedTextColor.WHITE)));
+        sendMessage(player, Component.text(message).color(NamedTextColor.WHITE));
     }
 
     /**
      * プレフィックス付きの成功メッセージを送信
      */
     public static void sendSuccess(Player player, String message) {
-        player.sendMessage(Component.text(prefix)
-            .color(NamedTextColor.GOLD)
-            .append(Component.text(message).color(NamedTextColor.GREEN)));
+        sendMessage(player, Component.text(message).color(NamedTextColor.GREEN));
     }
 
     /**
      * プレフィックス付きのエラーメッセージを送信
      */
     public static void sendError(Player player, String message) {
-        player.sendMessage(Component.text(prefix)
-            .color(NamedTextColor.GOLD)
-            .append(Component.text(message).color(NamedTextColor.RED)));
+        sendMessage(player, Component.text(message).color(NamedTextColor.RED));
     }
 
     /**
      * プレフィックス付きの警告メッセージを送信
      */
     public static void sendWarning(Player player, String message) {
-        player.sendMessage(Component.text(prefix)
-            .color(NamedTextColor.GOLD)
-            .append(Component.text(message).color(NamedTextColor.YELLOW)));
+        sendMessage(player, Component.text(message).color(NamedTextColor.YELLOW));
     }
 
     /**
@@ -64,19 +74,16 @@ public final class MessageUtil {
      */
     public static void broadcast(String message) {
         Bukkit.broadcast(Component.text(prefix)
-            .color(NamedTextColor.GOLD)
-            .append(Component.text(message).color(NamedTextColor.WHITE)));
+                .color(NamedTextColor.GOLD)
+                .append(Component.text(message).color(NamedTextColor.WHITE)));
     }
 
     /**
      * 指定したプレイヤーにブロードキャスト
      */
     public static void broadcast(Collection<? extends Player> players, String message) {
-        Component msg = Component.text(prefix)
-            .color(NamedTextColor.GOLD)
-            .append(Component.text(message).color(NamedTextColor.WHITE));
         for (Player player : players) {
-            player.sendMessage(msg);
+            sendInfo(player, message);
         }
     }
 

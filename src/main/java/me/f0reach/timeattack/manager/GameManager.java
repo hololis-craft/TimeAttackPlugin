@@ -7,12 +7,14 @@ import me.f0reach.timeattack.model.WorldSet;
 import me.f0reach.timeattack.util.MessageUtil;
 import me.f0reach.timeattack.util.TimeUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * タイムアタックのゲームフローを管理するクラス
@@ -82,6 +84,7 @@ public class GameManager {
 
     /**
      * ゲームを開始（カウントダウン付き）
+     *
      * @return 開始成功の場合true
      */
     public boolean startGame() {
@@ -176,30 +179,18 @@ public class GameManager {
             return;
         }
 
-        World overworld = worldSet.getOverworld();
-        if (overworld == null) {
-            plugin.getLogger().warning("Overworld not loaded for team: " + team.getName());
-            return;
-        }
-
-        Location spawnLocation = overworld.getSpawnLocation();
-
         for (UUID memberId : team.getMembers()) {
             Player player = Bukkit.getPlayer(memberId);
-            if (player != null && player.isOnline()) {
-                player.teleportAsync(spawnLocation).thenAccept(success -> {
-                    if (success) {
-                        plugin.getLogger().info("Teleported " + player.getName() + " to " + team.getName() + " spawn");
-                    } else {
-                        plugin.getLogger().warning("Failed to teleport " + player.getName());
-                    }
-                });
+            if (player == null) {
+                continue;
             }
+            plugin.getWorldSetManager().teleportToWorldSetSpawn(worldSet, World.Environment.NORMAL, player);
         }
     }
 
     /**
      * ゲーム完了を処理（ワールドIDで呼び出し）
+     *
      * @param worldId 完了したワールドの名前
      * @return 完了処理成功の場合true
      */

@@ -3,6 +3,8 @@ package me.f0reach.timeattack.command;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.command.subcommand.*;
 import me.f0reach.timeattack.util.MessageUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -122,12 +124,12 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
     }
 
     private void showHelp(CommandSender sender) {
-        sender.sendMessage("§6=== TimeAttack コマンドヘルプ ===");
+        sender.sendMessage(Component.text("=== TimeAttack コマンドヘルプ ===").color(NamedTextColor.GOLD));
 
         for (SubCommand subCommand : subCommands.values()) {
             if (subCommand.hasPermission(sender)) {
-                sender.sendMessage("§e" + subCommand.getUsage());
-                sender.sendMessage("  §7" + subCommand.getDescription());
+                sender.sendMessage(Component.text(subCommand.getUsage()).color(NamedTextColor.YELLOW));
+                sender.sendMessage(Component.text("  " + subCommand.getDescription()).color(NamedTextColor.GRAY));
             }
         }
     }
