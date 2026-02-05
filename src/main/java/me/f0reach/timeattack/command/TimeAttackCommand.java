@@ -80,14 +80,18 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
 
         try {
-            return subCommand.execute(sender, subArgs);
+            boolean success = subCommand.execute(sender, subArgs);
+            if (!success) {
+                MessageUtil.sendError((Player) sender, "コマンドの実行に失敗しました。使用方法: " + subCommand.getUsage());
+            }
+            return true;
         } catch (Exception e) {
             plugin.getLogger().severe("Error executing command: " + e.getMessage());
             e.printStackTrace();
             if (sender instanceof Player player) {
                 MessageUtil.sendError(player, "コマンド実行中にエラーが発生しました");
             }
-            return false;
+            return true;
         }
     }
 
