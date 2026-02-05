@@ -35,6 +35,7 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
         registerSubCommand(new TeamAddCommand(plugin));
         registerSubCommand(new TeamRemoveCommand(plugin));
         registerSubCommand(new TeamRandomCommand(plugin));
+        registerSubCommand(new TeleportCommand(plugin));
         registerSubCommand(new StartCommand(plugin));
         registerSubCommand(new StatusCommand(plugin));
         registerSubCommand(new CompleteCommand(plugin));

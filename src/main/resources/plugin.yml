@@ -1,8 +1,8 @@
 name: TimeAttackPlugin
-version: '${version}'
+version: "${version}"
 main: me.f0reach.timeattack.PluginMain
-api-version: '1.21'
-authors: [ f0reachARR ]
+api-version: "1.21"
+authors: [f0reachARR]
 description: Multiverse Coreを使用したチーム対抗タイムアタックプラグイン
 
 depend:
@@ -67,18 +67,7 @@ permissions:
   timeattack.team.admin:
     description: チーム管理者権限（作成・追加・削除・ランダム振り分け）
     default: op
-    children:
-      timeattack.team.list: true
-      timeattack.team.info: true
-
-  timeattack.team.list:
-    description: チーム一覧表示
-    default: true
-
-  timeattack.team.info:
-    description: チーム情報表示
-    default: true
 
   timeattack.status:
     description: ゲーム状態確認
-    default: true
+    default: op
