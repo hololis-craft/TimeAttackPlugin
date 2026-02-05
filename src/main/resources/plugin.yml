@@ -29,7 +29,7 @@ permissions:
       timeattack.complete: true
       timeattack.reset: true
       timeattack.reload: true
-      timeattack.team: true
+      timeattack.team.admin: true
       timeattack.status: true
 
   timeattack.setup:
@@ -61,34 +61,22 @@ permissions:
     default: op
 
   timeattack.autojoin.bypass:
-    description: 自動参加をバイパス
+    description: ランダム振り分けをバイパス
     default: op
 
-  timeattack.team:
-    description: チーム管理（参加者用）
-    default: true
+  timeattack.team.admin:
+    description: チーム管理者権限（作成・追加・削除・ランダム振り分け）
+    default: op
     children:
-      timeattack.team.auto: true
       timeattack.team.list: true
-
-  timeattack.team.create:
-    description: チーム作成
-    default: op
-
-  timeattack.team.join:
-    description: チーム参加
-    default: op
-
-  timeattack.team.leave:
-    description: チーム離脱
-    default: op
-
-  timeattack.team.auto:
-    description: 自動振り分け
-    default: true
+      timeattack.team.info: true
 
   timeattack.team.list:
     description: チーム一覧表示
+    default: true
+
+  timeattack.team.info:
+    description: チーム情報表示
     default: true
 
   timeattack.status:

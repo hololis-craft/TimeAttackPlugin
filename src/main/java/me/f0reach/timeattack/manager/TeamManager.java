@@ -4,8 +4,11 @@ import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.GameState;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.model.WorldSet;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * チームの管理を行うクラス
@@ -287,5 +290,36 @@ public class TeamManager {
     public void clearAll() {
         teams.clear();
         playerTeams.clear();
+    }
+
+    /**
+     * バイパス権限を持たない全オンラインプレイヤーをランダムにチームへ振り分け
+     * @return 振り分けられたプレイヤーとチームのマップ
+     */
+    public Map<Player, Team> randomAssignAllPlayers() {
+        Map<Player, Team> assignments = new LinkedHashMap<>();
+
+        // バイパス権限を持たず、チーム未所属のオンラインプレイヤーを取得
+        List<Player> eligiblePlayers = Bukkit.getOnlinePlayers().stream()
+            .filter(p -> !p.hasPermission("timeattack.autojoin.bypass"))
+            .filter(p -> !hasTeam(p.getUniqueId()))
+            .collect(Collectors.toList());
+
+        if (eligiblePlayers.isEmpty() || teams.isEmpty()) {
+            return assignments;
+        }
+
+        // ランダムにシャッフル
+        Collections.shuffle(eligiblePlayers);
+
+        // 各プレイヤーを人数最小のチームに振り分け
+        for (Player player : eligiblePlayers) {
+            Team team = getTeamWithFewestMembers();
+            if (team != null && addPlayer(player.getUniqueId(), team.getName())) {
+                assignments.put(player, team);
+            }
+        }
+
+        return assignments;
     }
 }
