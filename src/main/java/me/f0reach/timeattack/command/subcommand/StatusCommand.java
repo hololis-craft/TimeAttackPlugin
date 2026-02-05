@@ -5,10 +5,13 @@ import me.f0reach.timeattack.model.GameState;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
 import me.f0reach.timeattack.util.TimeUtil;
+
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -96,7 +99,7 @@ public class StatusCommand extends SubCommand {
 
                 String worldStatus = team.hasWorldSet() ? "" : " §c(ワールド未作成)";
                 sender.sendMessage(stateIcon + " §e" + team.getName() +
-                    " §7(" + team.getMemberCount() + "人)" + time + worldStatus);
+                        " §7(" + team.getMemberCount() + "人)" + time + worldStatus);
             }
         }
     }
@@ -105,6 +108,13 @@ public class StatusCommand extends SubCommand {
         sender.sendMessage("§6=== チーム「" + team.getName() + "」===");
         sender.sendMessage("§e状態: §f" + getStateDisplayName(team.getState()));
         sender.sendMessage("§eメンバー数: §f" + team.getMemberCount());
+
+        for (UUID memberId : team.getMembers()) {
+            Player member = Bukkit.getPlayer(memberId);
+            String memberName = member != null ? member.getName() : memberId.toString().substring(0, 8) + "...";
+            String online = member != null && member.isOnline() ? "§a●" : "§c○";
+            sender.sendMessage("  " + online + " " + memberName);
+        }
 
         if (team.hasWorldSet()) {
             sender.sendMessage("§eワールド: §a作成済み");
@@ -144,9 +154,9 @@ public class StatusCommand extends SubCommand {
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
             return plugin.getTeamManager().getAllTeams().stream()
-                .map(Team::getName)
-                .filter(name -> name.toLowerCase().startsWith(partial))
-                .collect(Collectors.toList());
+                    .map(Team::getName)
+                    .filter(name -> name.toLowerCase().startsWith(partial))
+                    .collect(Collectors.toList());
         }
         return List.of();
     }

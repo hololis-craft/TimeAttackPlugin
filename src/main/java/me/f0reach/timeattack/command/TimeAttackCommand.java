@@ -34,8 +34,6 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
         registerSubCommand(new TeamCreateCommand(plugin));
         registerSubCommand(new TeamAddCommand(plugin));
         registerSubCommand(new TeamRemoveCommand(plugin));
-        registerSubCommand(new TeamListCommand(plugin));
-        registerSubCommand(new TeamInfoCommand(plugin));
         registerSubCommand(new TeamRandomCommand(plugin));
         registerSubCommand(new StartCommand(plugin));
         registerSubCommand(new StatusCommand(plugin));
@@ -50,7 +48,7 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
-                             @NotNull String label, @NotNull String[] args) {
+            @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
             showHelp(sender);
             return true;
@@ -94,7 +92,7 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
-                                                 @NotNull String alias, @NotNull String[] args) {
+            @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
             // サブコマンド名の補完
             String partial = args[0].toLowerCase();
@@ -102,7 +100,7 @@ public class TimeAttackCommand implements CommandExecutor, TabCompleter {
 
             for (SubCommand subCommand : subCommands.values()) {
                 if (subCommand.hasPermission(sender) &&
-                    subCommand.getName().toLowerCase().startsWith(partial)) {
+                        subCommand.getName().toLowerCase().startsWith(partial)) {
                     completions.add(subCommand.getName());
                 }
             }
