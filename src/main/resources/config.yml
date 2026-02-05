@@ -22,6 +22,29 @@ teams:
     enabled: true
     # 待機中のみ自動振り分けを行うか
     only-when-waiting: true
+  # チームカラー設定
+  colors:
+    # チームカラー機能を有効にするか
+    enabled: true
+    # 利用可能な色（チーム作成時に順番に割り当てられる）
+    # 有効な値: BLACK, DARK_BLUE, DARK_GREEN, DARK_AQUA, DARK_RED,
+    #          DARK_PURPLE, GOLD, GRAY, DARK_GRAY, BLUE, GREEN,
+    #          AQUA, RED, LIGHT_PURPLE, YELLOW, WHITE
+    available-colors:
+      - RED
+      - BLUE
+      - GREEN
+      - YELLOW
+      - AQUA
+      - LIGHT_PURPLE
+      - GOLD
+      - DARK_AQUA
+    # チャットでのチームカラー表示設定
+    chat:
+      # チャットにチームカラーを適用するか
+      enabled: true
+      # チャットフォーマット（%team% = チーム名, %player% = プレイヤー名, %message% = メッセージ）
+      format: "[%team%] %player%: %message%"
 
 # ゲーム設定
 game:

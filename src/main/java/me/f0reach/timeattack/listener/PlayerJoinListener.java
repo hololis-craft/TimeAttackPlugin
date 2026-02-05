@@ -30,6 +30,11 @@ public class PlayerJoinListener implements Listener {
             // 既存のチームに所属している場合
             MessageUtil.sendInfo(player, "おかえりなさい！チーム「" + currentTeam.getName() + "」に所属しています");
 
+            // スコアボードチームに同期（再ログイン時に色を適用）
+            if (plugin.getScoreboardTeamManager() != null) {
+                plugin.getScoreboardTeamManager().addPlayerToScoreboardTeam(player, currentTeam);
+            }
+
             // ゲームが進行中の場合、チームのワールドにテレポート
             if (plugin.getGameManager().getGameState() == GameState.RUNNING &&
                 currentTeam.getState() == GameState.RUNNING &&

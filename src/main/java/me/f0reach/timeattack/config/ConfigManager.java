@@ -33,6 +33,12 @@ public class ConfigManager {
     private int timeUpdateInterval;
     private boolean showActionbar;
 
+    // チームカラー設定
+    private boolean teamColorsEnabled;
+    private List<String> availableColors;
+    private boolean teamChatEnabled;
+    private String teamChatFormat;
+
     public ConfigManager(PluginMain plugin) {
         this.plugin = plugin;
     }
@@ -57,6 +63,15 @@ public class ConfigManager {
         showTitleOnStart = config.getBoolean("game.show-title-on-start", true);
         timeUpdateInterval = config.getInt("time.update-interval", 20);
         showActionbar = config.getBoolean("time.show-actionbar", true);
+
+        // チームカラー設定
+        teamColorsEnabled = config.getBoolean("teams.colors.enabled", true);
+        availableColors = config.getStringList("teams.colors.available-colors");
+        if (availableColors.isEmpty()) {
+            availableColors = Arrays.asList("RED", "BLUE", "GREEN", "YELLOW", "AQUA", "LIGHT_PURPLE", "GOLD", "DARK_AQUA");
+        }
+        teamChatEnabled = config.getBoolean("teams.colors.chat.enabled", true);
+        teamChatFormat = config.getString("teams.colors.chat.format", "[%team%] %player%: %message%");
 
         // game-data.yml
         gameDataFile = new File(plugin.getDataFolder(), "game-data.yml");
@@ -157,6 +172,9 @@ public class ConfigManager {
         gameData.set(path + ".state", team.getState().name());
         gameData.set(path + ".completion-time", team.getCompletionTime());
 
+        // チームカラー
+        gameData.set(path + ".color", team.getColor());
+
         saveGameData();
     }
 
@@ -202,6 +220,9 @@ public class ConfigManager {
             }
 
             team.setCompletionTime(gameData.getLong(path + ".completion-time", -1));
+
+            // チームカラー
+            team.setColor(gameData.getString(path + ".color", null));
 
             teams.put(teamName, team);
         }
@@ -289,5 +310,23 @@ public class ConfigManager {
 
     public boolean isShowActionbar() {
         return showActionbar;
+    }
+
+    // ========== チームカラー設定 ==========
+
+    public boolean isTeamColorsEnabled() {
+        return teamColorsEnabled;
+    }
+
+    public List<String> getAvailableColors() {
+        return availableColors;
+    }
+
+    public boolean isTeamChatEnabled() {
+        return teamChatEnabled;
+    }
+
+    public String getTeamChatFormat() {
+        return teamChatFormat;
     }
 }

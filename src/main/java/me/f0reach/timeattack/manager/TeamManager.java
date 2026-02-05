@@ -65,6 +65,11 @@ public class TeamManager {
         teams.put(name, team);
         plugin.getConfigManager().saveTeam(team);
 
+        // スコアボードチームに同期
+        if (plugin.getScoreboardTeamManager() != null) {
+            plugin.getScoreboardTeamManager().syncTeam(team);
+        }
+
         plugin.getLogger().info("Created team: " + name);
         return team;
     }
@@ -79,9 +84,24 @@ public class TeamManager {
             return false;
         }
 
+        // メンバーをスコアボードチームから削除
+        if (plugin.getScoreboardTeamManager() != null) {
+            for (UUID memberId : team.getMembers()) {
+                Player player = Bukkit.getPlayer(memberId);
+                if (player != null) {
+                    plugin.getScoreboardTeamManager().removePlayerFromAllScoreboardTeams(player);
+                }
+            }
+        }
+
         // メンバーをチームから削除
         for (UUID memberId : new HashSet<>(team.getMembers())) {
             playerTeams.remove(memberId);
+        }
+
+        // スコアボードチームを削除
+        if (plugin.getScoreboardTeamManager() != null) {
+            plugin.getScoreboardTeamManager().removeScoreboardTeam(name);
         }
 
         // ワールドセットを削除
@@ -125,6 +145,12 @@ public class TeamManager {
         playerTeams.put(playerId, teamName);
         plugin.getConfigManager().saveTeam(team);
 
+        // スコアボードチームに追加
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && plugin.getScoreboardTeamManager() != null) {
+            plugin.getScoreboardTeamManager().addPlayerToScoreboardTeam(player, team);
+        }
+
         return true;
     }
 
@@ -142,6 +168,12 @@ public class TeamManager {
         if (team != null) {
             team.removeMember(playerId);
             plugin.getConfigManager().saveTeam(team);
+        }
+
+        // スコアボードチームから削除
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && plugin.getScoreboardTeamManager() != null) {
+            plugin.getScoreboardTeamManager().removePlayerFromAllScoreboardTeams(player);
         }
 
         playerTeams.remove(playerId);

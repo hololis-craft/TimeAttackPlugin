@@ -2,9 +2,11 @@ package me.f0reach.timeattack;
 
 import me.f0reach.timeattack.command.TimeAttackCommand;
 import me.f0reach.timeattack.config.ConfigManager;
+import me.f0reach.timeattack.listener.ChatListener;
 import me.f0reach.timeattack.listener.PlayerJoinListener;
 import me.f0reach.timeattack.listener.PlayerQuitListener;
 import me.f0reach.timeattack.manager.GameManager;
+import me.f0reach.timeattack.manager.ScoreboardTeamManager;
 import me.f0reach.timeattack.manager.TeamManager;
 import me.f0reach.timeattack.manager.TimeManager;
 import me.f0reach.timeattack.manager.WorldSetManager;
@@ -21,6 +23,7 @@ public final class PluginMain extends JavaPlugin {
     private TeamManager teamManager;
     private GameManager gameManager;
     private TimeManager timeManager;
+    private ScoreboardTeamManager scoreboardTeamManager;
 
     @Override
     public void onEnable() {
@@ -51,10 +54,14 @@ public final class PluginMain extends JavaPlugin {
         teamManager = new TeamManager(this);
         timeManager = new TimeManager(this);
         gameManager = new GameManager(this);
+        scoreboardTeamManager = new ScoreboardTeamManager(this);
 
         // 保存されたデータを読み込む
         teamManager.loadTeams();
         gameManager.loadState();
+
+        // スコアボードチームを初期化（チーム読み込み後）
+        scoreboardTeamManager.initialize();
 
         // ゲームが進行中の場合、タイマータスクを再開
         timeManager.resumeIfRunning();
@@ -75,6 +82,11 @@ public final class PluginMain extends JavaPlugin {
             timeManager.stopUpdateTask();
         }
 
+        // スコアボードチームをクリーンアップ
+        if (scoreboardTeamManager != null) {
+            scoreboardTeamManager.cleanup();
+        }
+
         getLogger().info("TimeAttackPlugin has been disabled!");
     }
 
@@ -90,6 +102,7 @@ public final class PluginMain extends JavaPlugin {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
     }
 
     // ========== Singleton & Getters ==========
@@ -116,5 +129,9 @@ public final class PluginMain extends JavaPlugin {
 
     public TimeManager getTimeManager() {
         return timeManager;
+    }
+
+    public ScoreboardTeamManager getScoreboardTeamManager() {
+        return scoreboardTeamManager;
     }
 }

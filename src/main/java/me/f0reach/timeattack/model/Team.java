@@ -14,6 +14,7 @@ public class Team {
     private WorldSet worldSet;
     private GameState state;
     private long completionTime;
+    private String color;
 
     public Team(String name) {
         this.name = name;
@@ -21,6 +22,7 @@ public class Team {
         this.worldSet = null;
         this.state = GameState.WAITING;
         this.completionTime = -1;
+        this.color = null;
     }
 
     public String getName() {
@@ -102,5 +104,20 @@ public class Team {
     public void reset() {
         this.state = GameState.WAITING;
         this.completionTime = -1;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    /**
+     * 色が設定されているか確認
+     */
+    public boolean hasColor() {
+        return color != null;
     }
 }
