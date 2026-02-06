@@ -71,8 +71,7 @@ public class WorldSetManager {
                     CreateWorldOptions.worldName(worldSet.getOverworldName())
                             .environment(World.Environment.NORMAL)
                             .seed(seed)
-                            .generateStructures(generateStructures)
-            );
+                            .generateStructures(generateStructures));
 
             if (overworldResult.isFailure()) {
                 plugin.getLogger().severe("Failed to create overworld: " + overworldResult.getFailureReason());
@@ -85,8 +84,7 @@ public class WorldSetManager {
                     CreateWorldOptions.worldName(worldSet.getNetherName())
                             .environment(World.Environment.NETHER)
                             .seed(seed)
-                            .generateStructures(generateStructures)
-            );
+                            .generateStructures(generateStructures));
 
             if (netherResult.isFailure()) {
                 plugin.getLogger().severe("Failed to create nether: " + netherResult.getFailureReason());
@@ -101,8 +99,7 @@ public class WorldSetManager {
                     CreateWorldOptions.worldName(worldSet.getEndName())
                             .environment(World.Environment.THE_END)
                             .seed(seed)
-                            .generateStructures(generateStructures)
-            );
+                            .generateStructures(generateStructures));
 
             if (endResult.isFailure()) {
                 plugin.getLogger().severe("Failed to create end: " + endResult.getFailureReason());
@@ -143,21 +140,28 @@ public class WorldSetManager {
     }
 
     /**
+     * ワールドセットが削除可能かどうか確認する
+     * 
+     * @param teamName
+     * @return 削除可能な場合true
+     */
+    public boolean canDeleteWorldSet(WorldSet worldSet) {
+        return canDeleteWorld(worldSet.getOverworldName())
+                && canDeleteWorld(worldSet.getNetherName())
+                && canDeleteWorld(worldSet.getEndName());
+    }
+
+    /**
      * ワールドセットを削除
      */
-    public boolean deleteWorldSet(String teamName) {
-        WorldSet worldSet = worldSets.get(teamName);
-        if (worldSet == null) {
-            return false;
-        }
-
+    public boolean deleteWorldSet(WorldSet worldSet) {
         boolean success = true;
         success &= deleteWorld(worldSet.getOverworldName());
         success &= deleteWorld(worldSet.getNetherName());
         success &= deleteWorld(worldSet.getEndName());
 
-        if (success) {
-            worldSets.remove(teamName);
+        if (success && worldSets.containsKey(worldSet.getTeamName())) {
+            worldSets.remove(worldSet.getTeamName());
         }
 
         return success;
@@ -184,7 +188,8 @@ public class WorldSetManager {
             var deleteResult = worldManager.deleteWorld(DeleteWorldOptions.world(world));
 
             if (deleteResult.isFailure()) {
-                plugin.getLogger().severe("Failed to delete world " + worldName + ": " + deleteResult.getFailureReason());
+                plugin.getLogger()
+                        .severe("Failed to delete world " + worldName + ": " + deleteResult.getFailureReason());
                 return false;
             }
 
@@ -195,6 +200,26 @@ public class WorldSetManager {
             plugin.getLogger().log(Level.SEVERE, "Exception while deleting world: " + worldName, e);
             return false;
         }
+    }
+
+    /**
+     * ワールドが削除可能かどうか確認する
+     * 
+     * @param worldName
+     * @return 削除可能な場合true
+     */
+    public boolean canDeleteWorld(String worldName) {
+        WorldManager worldManager = mvApi.getWorldManager();
+        var worldOpt = worldManager.getLoadedWorld(worldName);
+
+        if (worldOpt.isEmpty()) {
+            return false;
+        }
+
+        LoadedMultiverseWorld world = worldOpt.get();
+        var playersOpt = world.getPlayers();
+
+        return playersOpt.isEmpty() || playersOpt.get().isEmpty();
     }
 
     /**

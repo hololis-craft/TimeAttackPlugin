@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
  */
 public class TeamManager {
     private final PluginMain plugin;
-    private final Map<String, Team> teams;          // teamName -> Team
-    private final Map<UUID, String> playerTeams;    // playerUUID -> teamName
+    private final Map<String, Team> teams; // teamName -> Team
+    private final Map<UUID, String> playerTeams; // playerUUID -> teamName
 
     public TeamManager(PluginMain plugin) {
         this.plugin = plugin;
@@ -54,6 +54,7 @@ public class TeamManager {
 
     /**
      * 新しいチームを作成
+     * 
      * @return 作成されたチーム、既に存在する場合はnull
      */
     public Team createTeam(String name) {
@@ -76,12 +77,31 @@ public class TeamManager {
 
     /**
      * チームを削除
+     * 
      * @return 削除成功の場合true
      */
     public boolean deleteTeam(String name) {
         Team team = teams.get(name);
         if (team == null) {
             return false;
+        }
+
+        if (team.hasWorldSet()) {
+            WorldSet worldSet = team.getWorldSet();
+
+            // ワールドが削除できるかを確認
+            if (!plugin.getWorldSetManager().canDeleteWorldSet(worldSet)) {
+                plugin.getLogger().warning("Cannot delete team '" + name + "' because its worlds are in use.");
+                return false;
+            }
+
+            // ワールドセットを削除
+            if (plugin.getWorldSetManager().deleteWorldSet(worldSet)) {
+                plugin.getLogger().info("Deleted world set for team: " + name);
+            } else {
+                plugin.getLogger().warning("Failed to delete world set for team: " + name);
+                return false;
+            }
         }
 
         // メンバーをスコアボードチームから削除
@@ -92,21 +112,14 @@ public class TeamManager {
                     plugin.getScoreboardTeamManager().removePlayerFromAllScoreboardTeams(player);
                 }
             }
-        }
 
-        // メンバーをチームから削除
-        for (UUID memberId : new HashSet<>(team.getMembers())) {
-            playerTeams.remove(memberId);
-        }
-
-        // スコアボードチームを削除
-        if (plugin.getScoreboardTeamManager() != null) {
             plugin.getScoreboardTeamManager().removeScoreboardTeam(name);
         }
 
-        // ワールドセットを削除
-        if (team.hasWorldSet()) {
-            plugin.getWorldSetManager().deleteWorldSet(name);
+        // メンバーをチームから削除
+        // Note: team.getMembers()とplayerTeamsは独立しているため、ここでのループは安全
+        for (UUID memberId : team.getMembers()) {
+            playerTeams.remove(memberId);
         }
 
         teams.remove(name);
@@ -118,6 +131,7 @@ public class TeamManager {
 
     /**
      * プレイヤーをチームに追加
+     * 
      * @return 追加成功の場合true
      */
     public boolean addPlayer(UUID playerId, String teamName) {
@@ -156,6 +170,7 @@ public class TeamManager {
 
     /**
      * プレイヤーをチームから削除
+     * 
      * @return 削除成功の場合true
      */
     public boolean removePlayer(UUID playerId) {
@@ -211,6 +226,7 @@ public class TeamManager {
 
     /**
      * 人数が最も少ないチームを取得（自動振り分け用）
+     * 
      * @return 最も人数が少ないチーム、チームがない場合はnull
      */
     public Team getTeamWithFewestMembers() {
@@ -239,6 +255,7 @@ public class TeamManager {
 
     /**
      * プレイヤーを自動的にチームに振り分け
+     * 
      * @return 振り分けられたチーム、失敗時はnull
      */
     public Team autoAssignPlayer(UUID playerId) {
@@ -326,6 +343,7 @@ public class TeamManager {
 
     /**
      * バイパス権限を持たない全オンラインプレイヤーをランダムにチームへ振り分け
+     * 
      * @return 振り分けられたプレイヤーとチームのマップ
      */
     public Map<Player, Team> randomAssignAllPlayers() {
@@ -333,9 +351,9 @@ public class TeamManager {
 
         // バイパス権限を持たず、チーム未所属のオンラインプレイヤーを取得
         List<Player> eligiblePlayers = Bukkit.getOnlinePlayers().stream()
-            .filter(p -> !p.hasPermission("timeattack.autojoin.bypass"))
-            .filter(p -> !hasTeam(p.getUniqueId()))
-            .collect(Collectors.toList());
+                .filter(p -> !p.hasPermission("timeattack.autojoin.bypass"))
+                .filter(p -> !hasTeam(p.getUniqueId()))
+                .collect(Collectors.toList());
 
         if (eligiblePlayers.isEmpty() || teams.isEmpty()) {
             return assignments;
