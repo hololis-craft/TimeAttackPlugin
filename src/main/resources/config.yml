@@ -52,6 +52,10 @@ game:
   start-countdown: 10
   # 開始時にタイトルを表示するか
   show-title-on-start: true
+  # 達成条件の実績キー（リスト、空 = 実績による自動完了は無効）
+  # リスト内のいずれか1つを達成すればゲーム完了
+  # 例: ["minecraft:end/kill_dragon", "minecraft:adventure/hero_of_the_village"]
+  completion-advancements: []
 
 # 時間計測設定
 time:

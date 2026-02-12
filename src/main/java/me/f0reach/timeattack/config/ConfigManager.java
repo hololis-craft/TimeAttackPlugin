@@ -39,6 +39,9 @@ public class ConfigManager {
     private boolean teamChatEnabled;
     private String teamChatFormat;
 
+    // 実績達成条件
+    private List<String> completionAdvancements;
+
     public ConfigManager(PluginMain plugin) {
         this.plugin = plugin;
     }
@@ -72,6 +75,9 @@ public class ConfigManager {
         }
         teamChatEnabled = config.getBoolean("teams.colors.chat.enabled", true);
         teamChatFormat = config.getString("teams.colors.chat.format", "[%team%] %player%: %message%");
+
+        // 実績達成条件
+        completionAdvancements = config.getStringList("game.completion-advancements");
 
         // game-data.yml
         gameDataFile = new File(plugin.getDataFolder(), "game-data.yml");
@@ -328,5 +334,11 @@ public class ConfigManager {
 
     public String getTeamChatFormat() {
         return teamChatFormat;
+    }
+
+    // ========== 実績達成条件設定 ==========
+
+    public List<String> getCompletionAdvancements() {
+        return completionAdvancements;
     }
 }

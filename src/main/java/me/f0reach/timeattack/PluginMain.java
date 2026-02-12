@@ -2,6 +2,7 @@ package me.f0reach.timeattack;
 
 import me.f0reach.timeattack.command.TimeAttackCommand;
 import me.f0reach.timeattack.config.ConfigManager;
+import me.f0reach.timeattack.listener.AdvancementListener;
 import me.f0reach.timeattack.listener.ChatListener;
 import me.f0reach.timeattack.listener.PlayerJoinListener;
 import me.f0reach.timeattack.listener.PlayerQuitListener;
@@ -103,6 +104,7 @@ public final class PluginMain extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new AdvancementListener(this), this);
     }
 
     // ========== Singleton & Getters ==========
