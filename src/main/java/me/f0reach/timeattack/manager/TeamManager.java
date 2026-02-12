@@ -63,6 +63,10 @@ public class TeamManager {
         }
 
         Team team = new Team(name);
+        // ゲーム進行中の場合、チーム状態をRUNNINGに設定
+        if (plugin.getGameManager().getGameState() == GameState.RUNNING) {
+            team.setState(GameState.RUNNING);
+        }
         teams.put(name, team);
         plugin.getConfigManager().saveTeam(team);
 

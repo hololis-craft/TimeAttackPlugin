@@ -1,6 +1,7 @@
 package me.f0reach.timeattack.command.subcommand;
 
 import me.f0reach.timeattack.PluginMain;
+import me.f0reach.timeattack.model.GameState;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
 import org.bukkit.command.CommandSender;
@@ -47,6 +48,13 @@ public class DeleteCommand extends SubCommand {
             return false;
         }
 
+        if (plugin.getGameManager().getGameState() == GameState.RUNNING) {
+            if (sender instanceof Player player) {
+                MessageUtil.sendError(player, "ゲーム進行中はチームを削除できません");
+            }
+            return false;
+        }
+
         String teamName = args[0];
 
         // チームが存在するか確認
@@ -83,9 +91,9 @@ public class DeleteCommand extends SubCommand {
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
             return plugin.getTeamManager().getAllTeams().stream()
-                .map(Team::getName)
-                .filter(name -> name.toLowerCase().startsWith(partial))
-                .collect(Collectors.toList());
+                    .map(Team::getName)
+                    .filter(name -> name.toLowerCase().startsWith(partial))
+                    .collect(Collectors.toList());
         }
         return List.of();
     }
