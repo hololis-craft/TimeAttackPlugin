@@ -11,12 +11,6 @@ depend:
 softdepend:
   - Multiverse-NetherPortals
 
-commands:
-  timeattack:
-    description: タイムアタックのメインコマンド
-    aliases: [ta]
-    usage: /<command> <subcommand> [args]
-
 permissions:
   timeattack.admin:
     description: 管理者権限（全機能へのアクセス）

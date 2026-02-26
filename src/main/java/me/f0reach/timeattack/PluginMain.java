@@ -25,6 +25,7 @@ public final class PluginMain extends JavaPlugin {
     private GameManager gameManager;
     private TimeManager timeManager;
     private ScoreboardTeamManager scoreboardTeamManager;
+    private TimeAttackCommand command;
 
     @Override
     public void onEnable() {
@@ -68,7 +69,8 @@ public final class PluginMain extends JavaPlugin {
         timeManager.resumeIfRunning();
 
         // コマンドを登録
-        registerCommands();
+        command = new TimeAttackCommand(this);
+        command.registerCommands();
 
         // イベントリスナーを登録
         registerListeners();
@@ -89,15 +91,6 @@ public final class PluginMain extends JavaPlugin {
         }
 
         getLogger().info("TimeAttackPlugin has been disabled!");
-    }
-
-    private void registerCommands() {
-        PluginCommand command = getCommand("timeattack");
-        if (command != null) {
-            TimeAttackCommand executor = new TimeAttackCommand(this);
-            command.setExecutor(executor);
-            command.setTabCompleter(executor);
-        }
     }
 
     private void registerListeners() {

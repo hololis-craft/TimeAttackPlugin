@@ -1,14 +1,16 @@
 package me.f0reach.timeattack.command.subcommand;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * /ta teamremove <player> - プレイヤーをチームから削除（管理者専用）
@@ -20,93 +22,62 @@ public class TeamRemoveCommand extends SubCommand {
     }
 
     @Override
-    public String getName() {
-        return "teamremove";
-    }
+    public LiteralArgumentBuilder<CommandSourceStack> createCommand() {
+        return Commands.literal("teamremove")
+                .requires(source -> source.getSender().hasPermission("timeattack.team.admin"))
+                .then(Commands.argument("player", StringArgumentType.string())
+                        .suggests((context, builder) -> {
+                            String partial = builder.getRemaining().toLowerCase();
+                            for (Player p : Bukkit.getOnlinePlayers()) {
+                                if (plugin.getTeamManager().hasTeam(p.getUniqueId()) &&
+                                        p.getName().toLowerCase().startsWith(partial)) {
+                                    builder.suggest(p.getName());
+                                }
+                            }
+                            return builder.buildFuture();
+                        })
+                        .executes(context -> {
+                            CommandSender sender = context.getSource().getSender();
+                            String playerName = StringArgumentType.getString(context, "player");
 
-    @Override
-    public String getDescription() {
-        return "プレイヤーをチームから削除します";
-    }
+                            Player targetPlayer = Bukkit.getPlayer(playerName);
+                            if (targetPlayer == null) {
+                                if (sender instanceof Player player) {
+                                    MessageUtil.sendError(player, "プレイヤー「" + playerName + "」が見つかりません（オンラインである必要があります）");
+                                } else {
+                                    sender.sendMessage("エラー: プレイヤー「" + playerName + "」が見つかりません");
+                                }
+                                return Command.SINGLE_SUCCESS;
+                            }
 
-    @Override
-    public String getUsage() {
-        return "/ta teamremove <player>";
-    }
+                            Team currentTeam = plugin.getTeamManager().getPlayerTeam(targetPlayer.getUniqueId());
+                            if (currentTeam == null) {
+                                if (sender instanceof Player player) {
+                                    MessageUtil.sendError(player, "プレイヤー「" + playerName + "」はチームに所属していません");
+                                } else {
+                                    sender.sendMessage("エラー: プレイヤー「" + playerName + "」はチームに所属していません");
+                                }
+                                return Command.SINGLE_SUCCESS;
+                            }
 
-    @Override
-    public String getPermission() {
-        return "timeattack.team.admin";
-    }
-
-    @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        if (args.length < 1) {
-            if (sender instanceof Player player) {
-                MessageUtil.sendError(player, "使用方法: " + getUsage());
-            } else {
-                sender.sendMessage("使用方法: " + getUsage());
-            }
-            return false;
-        }
-
-        String playerName = args[0];
-
-        // ターゲットプレイヤーを検索
-        Player targetPlayer = Bukkit.getPlayer(playerName);
-        if (targetPlayer == null) {
-            if (sender instanceof Player player) {
-                MessageUtil.sendError(player, "プレイヤー「" + playerName + "」が見つかりません（オンラインである必要があります）");
-            } else {
-                sender.sendMessage("プレイヤー「" + playerName + "」が見つかりません（オンラインである必要があります）");
-            }
-            return false;
-        }
-
-        // プレイヤーがチームに所属しているか確認
-        Team currentTeam = plugin.getTeamManager().getPlayerTeam(targetPlayer.getUniqueId());
-        if (currentTeam == null) {
-            if (sender instanceof Player player) {
-                MessageUtil.sendError(player, "プレイヤー「" + playerName + "」はチームに所属していません");
-            } else {
-                sender.sendMessage("プレイヤー「" + playerName + "」はチームに所属していません");
-            }
-            return false;
-        }
-
-        String teamName = currentTeam.getName();
-        boolean success = plugin.getTeamManager().removePlayer(targetPlayer.getUniqueId());
-
-        if (success) {
-            if (sender instanceof Player player) {
-                MessageUtil.sendSuccess(player, "プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
-            } else {
-                sender.sendMessage("プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
-            }
-            // 対象プレイヤーに通知
-            MessageUtil.sendInfo(targetPlayer, "チーム「" + teamName + "」から削除されました");
-        } else {
-            if (sender instanceof Player player) {
-                MessageUtil.sendError(player, "チームからの削除に失敗しました");
-            } else {
-                sender.sendMessage("チームからの削除に失敗しました");
-            }
-        }
-        return success;
-    }
-
-    @Override
-    public List<String> tabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            // チームに所属しているプレイヤーのみを提案
-            String partial = args[0].toLowerCase();
-            return Bukkit.getOnlinePlayers().stream()
-                .filter(p -> plugin.getTeamManager().hasTeam(p.getUniqueId()))
-                .map(Player::getName)
-                .filter(name -> name.toLowerCase().startsWith(partial))
-                .collect(Collectors.toList());
-        }
-
-        return List.of();
+                            String teamName = currentTeam.getName();
+                            boolean success = plugin.getTeamManager().removePlayer(targetPlayer.getUniqueId());
+                            if (success) {
+                                if (sender instanceof Player player) {
+                                    MessageUtil.sendSuccess(player, "プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
+                                } else {
+                                    sender.sendMessage("プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
+                                }
+                                MessageUtil.sendInfo(targetPlayer, "チーム「" + teamName + "」から削除されました");
+                            } else {
+                                if (sender instanceof Player player) {
+                                    MessageUtil.sendError(player, "チームからの削除に失敗しました");
+                                } else {
+                                    sender.sendMessage("エラー: チームからの削除に失敗しました");
+                                }
+                            }
+                            return Command.SINGLE_SUCCESS;
+                        })
+                );
     }
 }

@@ -1,11 +1,12 @@
 package me.f0reach.timeattack.command.subcommand;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.util.MessageUtil;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.List;
 
 /**
  * /ta reset - ゲームをリセット
@@ -17,40 +18,15 @@ public class ResetCommand extends SubCommand {
     }
 
     @Override
-    public String getName() {
-        return "reset";
-    }
-
-    @Override
-    public String getDescription() {
-        return "ゲームの状態をリセットします（ワールドとチームは保持）";
-    }
-
-    @Override
-    public String getUsage() {
-        return "/ta reset";
-    }
-
-    @Override
-    public String getPermission() {
-        return "timeattack.admin";
-    }
-
-    @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        plugin.getGameManager().resetGame();
-
-        if (sender instanceof Player player) {
-            MessageUtil.sendSuccess(player, "ゲームをリセットしました");
-        } else {
-            sender.sendMessage("ゲームをリセットしました");
-        }
-
-        return true;
-    }
-
-    @Override
-    public List<String> tabComplete(CommandSender sender, String[] args) {
-        return List.of();
+    public LiteralArgumentBuilder<CommandSourceStack> createCommand() {
+        return Commands.literal("reset")
+                .requires(source -> source.getSender().hasPermission("timeattack.admin"))
+                .executes(context -> {
+                    plugin.getGameManager().resetGame();
+                    if (context.getSource().getSender() instanceof Player player) {
+                        MessageUtil.sendSuccess(player, "ゲームをリセットしました");
+                    }
+                    return Command.SINGLE_SUCCESS;
+                });
     }
 }

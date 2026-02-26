@@ -1,18 +1,19 @@
 package me.f0reach.timeattack.command.subcommand;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.GameState;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
 import me.f0reach.timeattack.util.TimeUtil;
-
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * /ta status [team] - ゲーム状態を確認
@@ -24,67 +25,60 @@ public class StatusCommand extends SubCommand {
     }
 
     @Override
-    public String getName() {
-        return "status";
+    public LiteralArgumentBuilder<CommandSourceStack> createCommand() {
+        return Commands.literal("status")
+                .requires(source -> source.getSender().hasPermission("timeattack.status"))
+                .executes(context -> {
+                    if (context.getSource().getSender() instanceof Player player) {
+                        showGlobalStatus(player);
+                    }
+                    return Command.SINGLE_SUCCESS;
+                })
+                .then(Commands.argument("team", StringArgumentType.string())
+                        .suggests((context, builder) -> {
+                            String partial = builder.getRemaining().toLowerCase();
+                            for (Team team : plugin.getTeamManager().getAllTeams()) {
+                                if (team.getName().toLowerCase().startsWith(partial)) {
+                                    builder.suggest(team.getName());
+                                }
+                            }
+                            return builder.buildFuture();
+                        })
+                        .executes(context -> {
+                            if (!(context.getSource().getSender() instanceof Player player)) {
+                                return Command.SINGLE_SUCCESS;
+                            }
+                            String teamName = StringArgumentType.getString(context, "team");
+                            Team team = plugin.getTeamManager().getTeam(teamName);
+                            if (team == null) {
+                                MessageUtil.sendError(player, "チーム「" + teamName + "」が存在しません");
+                                return Command.SINGLE_SUCCESS;
+                            }
+                            showTeamStatus(player, team);
+                            return Command.SINGLE_SUCCESS;
+                        })
+                );
     }
 
-    @Override
-    public String getDescription() {
-        return "ゲームの状態を確認します";
-    }
-
-    @Override
-    public String getUsage() {
-        return "/ta status [team]";
-    }
-
-    @Override
-    public String getPermission() {
-        return "timeattack.status";
-    }
-
-    @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        if (args.length > 0) {
-            // 特定のチームの状態を表示
-            String teamName = args[0];
-            Team team = plugin.getTeamManager().getTeam(teamName);
-
-            if (team == null) {
-                if (sender instanceof Player player) {
-                    MessageUtil.sendError(player, "チーム「" + teamName + "」が存在しません");
-                }
-                return false;
-            }
-
-            showTeamStatus(sender, team);
-            return true;
-        }
-
-        // 全体の状態を表示
-        showGlobalStatus(sender);
-        return true;
-    }
-
-    private void showGlobalStatus(CommandSender sender) {
+    private void showGlobalStatus(Player player) {
         GameState globalState = plugin.getGameManager().getGameState();
         long seed = plugin.getConfigManager().getCurrentSeed();
 
-        sender.sendMessage("§6=== タイムアタック状態 ===");
-        sender.sendMessage("§eゲーム状態: §f" + getStateDisplayName(globalState));
+        player.sendMessage("§6=== タイムアタック状態 ===");
+        player.sendMessage("§eゲーム状態: §f" + getStateDisplayName(globalState));
 
         if (seed != 0) {
-            sender.sendMessage("§eシード: §f" + seed);
+            player.sendMessage("§eシード: §f" + seed);
         } else {
-            sender.sendMessage("§eシード: §c未設定");
+            player.sendMessage("§eシード: §c未設定");
         }
 
         var teams = plugin.getTeamManager().getAllTeams();
-        sender.sendMessage("§eチーム数: §f" + teams.size());
+        player.sendMessage("§eチーム数: §f" + teams.size());
 
         if (!teams.isEmpty()) {
-            sender.sendMessage("");
-            sender.sendMessage("§6--- チーム状況 ---");
+            player.sendMessage("");
+            player.sendMessage("§6--- チーム状況 ---");
 
             for (Team team : teams) {
                 String stateIcon = getStateIcon(team.getState());
@@ -98,38 +92,38 @@ public class StatusCommand extends SubCommand {
                 }
 
                 String worldStatus = team.hasWorldSet() ? "" : " §c(ワールド未作成)";
-                sender.sendMessage(stateIcon + " §e" + team.getName() +
+                player.sendMessage(stateIcon + " §e" + team.getName() +
                         " §7(" + team.getMemberCount() + "人)" + time + worldStatus);
             }
         }
     }
 
-    private void showTeamStatus(CommandSender sender, Team team) {
-        sender.sendMessage("§6=== チーム「" + team.getName() + "」===");
-        sender.sendMessage("§e状態: §f" + getStateDisplayName(team.getState()));
-        sender.sendMessage("§eメンバー数: §f" + team.getMemberCount());
+    private void showTeamStatus(Player player, Team team) {
+        player.sendMessage("§6=== チーム「" + team.getName() + "」===");
+        player.sendMessage("§e状態: §f" + getStateDisplayName(team.getState()));
+        player.sendMessage("§eメンバー数: §f" + team.getMemberCount());
 
         for (UUID memberId : team.getMembers()) {
             Player member = Bukkit.getPlayer(memberId);
             String memberName = member != null ? member.getName() : memberId.toString().substring(0, 8) + "...";
             String online = member != null && member.isOnline() ? "§a●" : "§c○";
-            sender.sendMessage("  " + online + " " + memberName);
+            player.sendMessage("  " + online + " " + memberName);
         }
 
         if (team.hasWorldSet()) {
-            sender.sendMessage("§eワールド: §a作成済み");
-            sender.sendMessage("  §7オーバーワールド: " + team.getWorldSet().getOverworldName());
-            sender.sendMessage("  §7ネザー: " + team.getWorldSet().getNetherName());
-            sender.sendMessage("  §7エンド: " + team.getWorldSet().getEndName());
+            player.sendMessage("§eワールド: §a作成済み");
+            player.sendMessage("  §7オーバーワールド: " + team.getWorldSet().getOverworldName());
+            player.sendMessage("  §7ネザー: " + team.getWorldSet().getNetherName());
+            player.sendMessage("  §7エンド: " + team.getWorldSet().getEndName());
         } else {
-            sender.sendMessage("§eワールド: §c未作成");
+            player.sendMessage("§eワールド: §c未作成");
         }
 
         if (team.getState() == GameState.RUNNING) {
             long elapsed = plugin.getTimeManager().getElapsedTime();
-            sender.sendMessage("§e経過時間: §f" + TimeUtil.formatTime(elapsed));
+            player.sendMessage("§e経過時間: §f" + TimeUtil.formatTime(elapsed));
         } else if (team.getState() == GameState.COMPLETED) {
-            sender.sendMessage("§eクリアタイム: §a" + TimeUtil.formatTime(team.getCompletionTime()));
+            player.sendMessage("§eクリアタイム: §a" + TimeUtil.formatTime(team.getCompletionTime()));
         }
     }
 
@@ -147,17 +141,5 @@ public class StatusCommand extends SubCommand {
             case RUNNING -> "§e▶";
             case COMPLETED -> "§a✓";
         };
-    }
-
-    @Override
-    public List<String> tabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            String partial = args[0].toLowerCase();
-            return plugin.getTeamManager().getAllTeams().stream()
-                    .map(Team::getName)
-                    .filter(name -> name.toLowerCase().startsWith(partial))
-                    .collect(Collectors.toList());
-        }
-        return List.of();
     }
 }
