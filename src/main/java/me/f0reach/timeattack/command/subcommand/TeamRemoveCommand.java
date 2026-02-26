@@ -1,8 +1,6 @@
 package me.f0reach.timeattack.command.subcommand;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -11,8 +9,6 @@ import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSele
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
