@@ -54,7 +54,6 @@ public class TeamCreateCommand extends SubCommand {
                                 sender.sendMessage("チーム「" + teamName + "」を作成しました");
                             }
                             return Command.SINGLE_SUCCESS;
-                        })
-                );
+                        }));
     }
 }

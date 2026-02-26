@@ -1,6 +1,7 @@
 package me.f0reach.timeattack.command.subcommand;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -25,32 +26,26 @@ public class SetupCommand extends SubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> createCommand() {
         return Commands.literal("setup")
                 .requires(source -> source.getSender().hasPermission("timeattack.admin"))
-                .then(Commands.argument("seed", StringArgumentType.string())
-                        .suggests((context, builder) -> {
-                            builder.suggest("random");
-                            return builder.buildFuture();
-                        })
-                        .executes(context -> {
-                            String seedStr = StringArgumentType.getString(context, "seed");
-                            long seed;
-                            if (seedStr.equalsIgnoreCase("random")) {
-                                seed = new Random().nextLong();
-                            } else {
-                                try {
-                                    seed = Long.parseLong(seedStr);
-                                } catch (NumberFormatException e) {
-                                    seed = seedStr.hashCode();
-                                }
-                            }
-                            plugin.getConfigManager().setCurrentSeed(seed);
-                            CommandSender sender = context.getSource().getSender();
-                            if (sender instanceof Player player) {
-                                MessageUtil.sendSuccess(player, "シードを設定しました: " + seed);
-                            } else {
-                                sender.sendMessage("シードを設定しました: " + seed);
-                            }
-                            return Command.SINGLE_SUCCESS;
-                        })
-                );
+                .then(Commands.literal("random").executes(context -> {
+                    CommandSender sender = context.getSource().getSender();
+                    long seed = new Random().nextLong();
+                    setSeed(sender, seed);
+                    return Command.SINGLE_SUCCESS;
+                }))
+                .then(Commands.argument("seed", LongArgumentType.longArg()).executes(context -> {
+                    CommandSender sender = context.getSource().getSender();
+                    long seed = LongArgumentType.getLong(context, "seed");
+                    setSeed(sender, seed);
+                    return Command.SINGLE_SUCCESS;
+                }));
+    }
+
+    private void setSeed(CommandSender sender, long seed) {
+        plugin.getConfigManager().setCurrentSeed(seed);
+        if (sender instanceof Player player) {
+            MessageUtil.sendSuccess(player, "シードを設定しました: " + seed);
+        } else {
+            sender.sendMessage("シードを設定しました: " + seed);
+        }
     }
 }

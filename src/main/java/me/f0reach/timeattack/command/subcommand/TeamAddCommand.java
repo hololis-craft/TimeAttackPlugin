@@ -5,10 +5,11 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -25,16 +26,7 @@ public class TeamAddCommand extends SubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> createCommand() {
         return Commands.literal("teamadd")
                 .requires(source -> source.getSender().hasPermission("timeattack.team.admin"))
-                .then(Commands.argument("player", StringArgumentType.string())
-                        .suggests((context, builder) -> {
-                            String partial = builder.getRemaining().toLowerCase();
-                            for (Player p : Bukkit.getOnlinePlayers()) {
-                                if (p.getName().toLowerCase().startsWith(partial)) {
-                                    builder.suggest(p.getName());
-                                }
-                            }
-                            return builder.buildFuture();
-                        })
+                .then(Commands.argument("player", ArgumentTypes.player())
                         .then(Commands.argument("team", StringArgumentType.string())
                                 .suggests((context, builder) -> {
                                     String partial = builder.getRemaining().toLowerCase();
@@ -48,18 +40,19 @@ public class TeamAddCommand extends SubCommand {
                                 })
                                 .executes(context -> {
                                     CommandSender sender = context.getSource().getSender();
-                                    String playerName = StringArgumentType.getString(context, "player");
-                                    String teamName = StringArgumentType.getString(context, "team");
-
-                                    Player targetPlayer = Bukkit.getPlayer(playerName);
-                                    if (targetPlayer == null) {
+                                    var targetResolver = context.getArgument("player",
+                                            PlayerSelectorArgumentResolver.class);
+                                    var targetPlayers = targetResolver.resolve(context.getSource());
+                                    if (targetPlayers.size() != 1) {
                                         if (sender instanceof Player player) {
-                                            MessageUtil.sendError(player, "プレイヤー「" + playerName + "」が見つかりません（オンラインである必要があります）");
+                                            MessageUtil.sendError(player, "プレイヤーは1人だけ指定してください");
                                         } else {
-                                            sender.sendMessage("エラー: プレイヤー「" + playerName + "」が見つかりません");
+                                            sender.sendMessage("エラー: プレイヤーは1人だけ指定してください");
                                         }
                                         return Command.SINGLE_SUCCESS;
                                     }
+                                    var targetPlayer = targetPlayers.getFirst();
+                                    String teamName = StringArgumentType.getString(context, "team");
 
                                     Team team = plugin.getTeamManager().getTeam(teamName);
                                     if (team == null) {
@@ -80,22 +73,32 @@ public class TeamAddCommand extends SubCommand {
                                         return Command.SINGLE_SUCCESS;
                                     }
 
-                                    Team currentTeam = plugin.getTeamManager().getPlayerTeam(targetPlayer.getUniqueId());
+                                    Team currentTeam = plugin.getTeamManager()
+                                            .getPlayerTeam(targetPlayer.getUniqueId());
                                     if (currentTeam != null && currentTeam.getName().equals(teamName)) {
                                         if (sender instanceof Player player) {
-                                            MessageUtil.sendWarning(player, "プレイヤー「" + playerName + "」は既にチーム「" + teamName + "」に所属しています");
+                                            MessageUtil.sendWarning(player,
+                                                    "プレイヤー「" + targetPlayer.getName() + "」は既にチーム「" + teamName
+                                                            + "」に所属しています");
                                         } else {
-                                            sender.sendMessage("プレイヤー「" + playerName + "」は既にチーム「" + teamName + "」に所属しています");
+                                            sender.sendMessage(
+                                                    "プレイヤー「" + targetPlayer.getName() + "」は既にチーム「" + teamName
+                                                            + "」に所属しています");
                                         }
                                         return Command.SINGLE_SUCCESS;
                                     }
 
-                                    boolean success = plugin.getTeamManager().addPlayer(targetPlayer.getUniqueId(), teamName);
+                                    boolean success = plugin.getTeamManager().addPlayer(targetPlayer.getUniqueId(),
+                                            teamName);
                                     if (success) {
                                         if (sender instanceof Player player) {
-                                            MessageUtil.sendSuccess(player, "プレイヤー「" + playerName + "」をチーム「" + teamName + "」に追加しました");
+                                            MessageUtil.sendSuccess(player,
+                                                    "プレイヤー「" + targetPlayer.getName() + "」をチーム「" + teamName
+                                                            + "」に追加しました");
                                         } else {
-                                            sender.sendMessage("プレイヤー「" + playerName + "」をチーム「" + teamName + "」に追加しました");
+                                            sender.sendMessage(
+                                                    "プレイヤー「" + targetPlayer.getName() + "」をチーム「" + teamName
+                                                            + "」に追加しました");
                                         }
                                         MessageUtil.sendInfo(targetPlayer, "チーム「" + teamName + "」に追加されました");
                                     } else {
@@ -106,8 +109,6 @@ public class TeamAddCommand extends SubCommand {
                                         }
                                     }
                                     return Command.SINGLE_SUCCESS;
-                                })
-                        )
-                );
+                                })));
     }
 }

@@ -38,32 +38,32 @@ public class CompleteCommand extends SubCommand {
                                 }
                             }
                             return builder.buildFuture();
-                        }))
-                .executes(context -> {
-                    // ワールドIDからチームを特定
-                    var worldId = StringArgumentType.getString(context, "worldId");
-                    var worldSet = plugin.getWorldSetManager().getWorldSetByWorldName(worldId);
-                    if (worldSet == null) {
-                        if (context.getSource().getSender() instanceof Player player) {
-                            MessageUtil.sendError(player, "ワールド「" + worldId + "」はタイムアタック用ワールドではありません");
-                        }
-                        return Command.SINGLE_SUCCESS;
-                    }
+                        })
+                        .executes(context -> {
+                            // ワールドIDからチームを特定
+                            var worldId = StringArgumentType.getString(context, "worldId");
+                            var worldSet = plugin.getWorldSetManager().getWorldSetByWorldName(worldId);
+                            if (worldSet == null) {
+                                if (context.getSource().getSender() instanceof Player player) {
+                                    MessageUtil.sendError(player, "ワールド「" + worldId + "」はタイムアタック用ワールドではありません");
+                                }
+                                return Command.SINGLE_SUCCESS;
+                            }
 
-                    // 完了処理
-                    boolean success = plugin.getGameManager().completeGame(worldId);
+                            // 完了処理
+                            boolean success = plugin.getGameManager().completeGame(worldId);
 
-                    if (success) {
-                        if (context.getSource().getSender() instanceof Player player) {
-                            MessageUtil.sendSuccess(player, "チーム「" + worldSet.getTeamName() + "」の完了を記録しました");
-                        }
-                    } else {
-                        if (context.getSource().getSender() instanceof Player player) {
-                            MessageUtil.sendError(player, "完了の記録に失敗しました（ゲームが開始されていないか、既に完了しています）");
-                        }
-                    }
+                            if (success) {
+                                if (context.getSource().getSender() instanceof Player player) {
+                                    MessageUtil.sendSuccess(player, "チーム「" + worldSet.getTeamName() + "」の完了を記録しました");
+                                }
+                            } else {
+                                if (context.getSource().getSender() instanceof Player player) {
+                                    MessageUtil.sendError(player, "完了の記録に失敗しました（ゲームが開始されていないか、既に完了しています）");
+                                }
+                            }
 
-                    return Command.SINGLE_SUCCESS;
-                });
+                            return Command.SINGLE_SUCCESS;
+                        }));
     }
 }

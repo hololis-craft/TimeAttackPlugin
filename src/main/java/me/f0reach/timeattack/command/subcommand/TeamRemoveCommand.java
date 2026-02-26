@@ -1,10 +1,13 @@
 package me.f0reach.timeattack.command.subcommand;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
+import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import me.f0reach.timeattack.PluginMain;
 import me.f0reach.timeattack.model.Team;
 import me.f0reach.timeattack.util.MessageUtil;
@@ -25,30 +28,22 @@ public class TeamRemoveCommand extends SubCommand {
     public LiteralArgumentBuilder<CommandSourceStack> createCommand() {
         return Commands.literal("teamremove")
                 .requires(source -> source.getSender().hasPermission("timeattack.team.admin"))
-                .then(Commands.argument("player", StringArgumentType.string())
-                        .suggests((context, builder) -> {
-                            String partial = builder.getRemaining().toLowerCase();
-                            for (Player p : Bukkit.getOnlinePlayers()) {
-                                if (plugin.getTeamManager().hasTeam(p.getUniqueId()) &&
-                                        p.getName().toLowerCase().startsWith(partial)) {
-                                    builder.suggest(p.getName());
-                                }
-                            }
-                            return builder.buildFuture();
-                        })
+                .then(Commands.argument("player", ArgumentTypes.player())
                         .executes(context -> {
-                            CommandSender sender = context.getSource().getSender();
-                            String playerName = StringArgumentType.getString(context, "player");
-
-                            Player targetPlayer = Bukkit.getPlayer(playerName);
-                            if (targetPlayer == null) {
+                            var sender = context.getSource().getSender();
+                            var targetResolver = context.getArgument("player",
+                                    PlayerSelectorArgumentResolver.class);
+                            var targetPlayers = targetResolver.resolve(context.getSource());
+                            if (targetPlayers.size() != 1) {
                                 if (sender instanceof Player player) {
-                                    MessageUtil.sendError(player, "プレイヤー「" + playerName + "」が見つかりません（オンラインである必要があります）");
+                                    MessageUtil.sendError(player, "プレイヤーは1人だけ指定してください");
                                 } else {
-                                    sender.sendMessage("エラー: プレイヤー「" + playerName + "」が見つかりません");
+                                    sender.sendMessage("エラー: プレイヤーは1人だけ指定してください");
                                 }
                                 return Command.SINGLE_SUCCESS;
                             }
+                            var targetPlayer = targetPlayers.getFirst();
+                            var playerName = targetPlayer.getName();
 
                             Team currentTeam = plugin.getTeamManager().getPlayerTeam(targetPlayer.getUniqueId());
                             if (currentTeam == null) {
@@ -64,7 +59,8 @@ public class TeamRemoveCommand extends SubCommand {
                             boolean success = plugin.getTeamManager().removePlayer(targetPlayer.getUniqueId());
                             if (success) {
                                 if (sender instanceof Player player) {
-                                    MessageUtil.sendSuccess(player, "プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
+                                    MessageUtil.sendSuccess(player,
+                                            "プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
                                 } else {
                                     sender.sendMessage("プレイヤー「" + playerName + "」をチーム「" + teamName + "」から削除しました");
                                 }
@@ -77,7 +73,6 @@ public class TeamRemoveCommand extends SubCommand {
                                 }
                             }
                             return Command.SINGLE_SUCCESS;
-                        })
-                );
+                        }));
     }
 }
